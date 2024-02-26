@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Flow analyser</title>
+  <style>
+    body, html {
+      height : 100%;
+      margin : 0;
+    }
+
+    .container {
+      display        : flex;
+      flex-direction : column;
+      height         : 100vh;
+      padding-left   : 20px;
+      padding-right  : 20px;
+    }
+
+    .header {
+      height           : 700px;
+      background-color : #f8f9fa;
+      padding          : 10px;
+    }
+
+    .scrollable-div {
+      flex-grow        : 1;
+      overflow-y       : auto;
+      background-color : #e9ecef;
+      padding          : 10px;
+      height           : 200%;
+    }
+
+    body {
+      font-family      : Arial, sans-serif;
+      color            : #333333;
+      background-color : #ffffff;
+    }
+
+    h2 {
+      color : darkblue;
+    }
+
+    form {
+      background-color : #f0f8ff;
+      padding          : 20px;
+      border-radius    : 8px;
+      box-shadow       : 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    textarea {
+      width         : 100%;
+      margin-bottom : 10px;
+      border        : 1px solid #cc #cccccc border-radius : 4px;
+      padding       : 10px;
+      resize        : vertical;
+    }
+
+    .icon {
+      width  : 20px;
+      height : 20px;
+    }
+
+    button {
+      background-color : darkblue;
+      color            : white;
+      padding          : 10px 20px;
+      border           : none;
+      border-radius    : 4px;
+      cursor           : pointer;
+      font-size        : 16px;
+    }
+
+    button:hover {
+      background-color : skyblue;
+    }
+
+    .output {
+      margin-top       : 20px;
+      background-color : #e6e6e6;
+      padding          : 10px;
+      border-radius    : 4px;
+      border-left      : 5px solid darkblue;
+    }
+
+    .output p {
+      margin : 5px 0;
+      color  : black;
+    }
+
+    .flowCounter {
+      font-size     : 24px;
+      color         : darkblue;
+      margin-bottom : 10px;
+    }
+
+    .flowVersion {
+      font-size : 16px;
+      color     : #99 #999999 margin-bottom : 10px;
+    }
+
+    .description, .notes {
+      margin-bottom : 20px;
+    }
+
+    .info-section {
+      margin-bottom : 20px;
+    }
+
+    .info-section h3 {
+      color : darkblue;
+    }
+
+    .info-section p {
+      margin  : 5px 0;
+      padding : 5px;
+    }
+
+    .error-messages {
+      background-color : #ab0202;
+      color            : #ffffff;
+      padding          : 10px;
+      border-radius    : 5px;
+      margin-bottom    : 20px;
+    }
+
+    table {
+      width           : 100%; /* Full-width */
+      border-collapse : collapse; /* Collapse borders */
+      margin          : 20px 0; /* Add some margin around the table */
+    }
+
+    table, th, td {
+      border : 1px solid #dddddd; /* Add a light grey border */
+    }
+
+    th, td {
+      text-align : left; /* Align text to the left */
+      padding    : 8px; /* Add padding */
+    }
+
+    th {
+      background-color : #004085; /* Dark blue background for headers */
+      color            : white; /* White text for headers */
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color : #f2f2f2; /* Light grey background for odd rows */
+    }
+
+    tbody tr:hover {
+      background-color : #dddddd; /* Light grey background on row hover */
+    }
+
+    /* Responsive table */
+    @media screen and (max-width : 600px) {
+      table {
+        border : 0;
+      }
+
+      table thead {
+        display : none;
+      }
+
+      table, tbody, th, td, tr {
+        display : block;
+      }
+
+      table tr {
+        margin-bottom : 10px;
+      }
+
+      table td {
+        text-align   : right;
+        padding-left : 50%; /* Or adjust based on your content */
+        text-align   : right;
+        position     : relative;
+      }
+
+      table td::before {
+        content      : attr(data-label);
+        position     : absolute;
+        left         : 0;
+        width        : 50%;
+        padding-left : 15px;
+        font-weight  : bold;
+        text-align   : left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h2>Input Pipe/CSV-Delimited Flow</h2>
+
+    <form th:action="@{/}" th:method="post">
+      <textarea id="inputArea" name="pipeInput" rows="5" cols="50" th:text="${pipeInput}"></textarea>
+      <br>
+      <button type="submit">Process</button>
+      <button id="copyButton" type="button">Copy All</button>
+    </form>
+  </div>
+
+  <div class="scrollable-div">
+    <div th:if="${flowCounter != null}">
+      <h2>Processed Output</h2>
+      <div th:if="${not #lists.isEmpty(errors)}">
+        <div class="error-messages" th:each="error : ${errors}">
+          <p th:text="${error}"></p>
+        </div>
+      </div>
+      <span class="flowCounter" th:text="${flowCounter} + ': ' + ${name}"></span>
+      <img class="icon" th:title="${energyType} + ' flow'"
+           th:src="${energyType == 'gas'} ? '/icons/gas.png' : '/icons/electricity.png'"
+           th:alt="${energyType == 'gas'} ? 'Gas Icon' : 'Electricity Icon'"/>
+      <div class="flowVersion" th:text="'Flow Version: ' + ${flowVersion}"></div>
+      <div class="info-section">
+        <h3>Description</h3>
+        <p class="description" th:text="${description}"></p>
+      </div>
+
+      <input type="hidden" id="energyType" th:value="${energyType}"/>
+
+      <div th:if="${notes != null}" class="info-section">
+        <h3>Notes</h3>
+        <p class="notes" th:text="${notes}"></p>
+      </div>
+
+      <h3>Header</h3>
+      <table>
+        <thead>
+        <tr>
+          <th th:each="entry : ${header}" th:text="${entry.name}"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td th:each="entry : ${header}">
+            <input class="valueField" th:data-rowindex="${entry.groupIndex}"
+                   th:data-columnindex="${entry.fieldIndex}"
+                   type="text" th:value="${entry.value}"/></td>
+        </tr>
+        </tbody>
+      </table>
+
+      <div th:each="group : ${groups}">
+        <h3 th:text="'Group ' + ${group['flowmoName']} + ' - ' + ${group['flowmoDescription']}"></h3>
+        <table>
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Value from flow</th>
+            <th>Optional</th>
+            <th>Reference</th>
+            <th>Description</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr th:each="entry : ${group['fields']}">
+            <td th:text="${entry.name}"></td>
+            <td>
+              <input th:if="${!entry.containsKey('validValues')}" class="valueField"
+                     th:data-rowindex="${entry.groupIndex}"
+                     th:data-columnindex="${entry.fieldIndex}"
+                     type="text" th:value="${entry.value}"/>
+              <select th:if="${entry.containsKey('validValues')}" class="valueField"
+                      th:data-rowindex="${entry.groupIndex}"
+                      th:data-columnindex="${entry.fieldIndex}">
+                <option value=""
+                        text="Empty"
+                        th:selected="${entry.value == null}">
+                <option th:value="${validValue['key']}"
+                        th:text="${validValue['value']}"
+                        th:each="validValue : ${entry['validValues']}"
+                        th:selected="${validValue['key'] == entry.value}">
+                </option>
+              </select>
+            </td>
+            <td th:text="${entry.optional} ? '&#10003;' : '&#10007;'"></td>
+            <td th:text="${entry.reference}"></td>
+            <td th:text="${entry.description}"></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div th:if="${trailer != null}">
+        <h3>Trailer</h3>
+        <table>
+          <thead>
+          <tr>
+            <th th:each="entry : ${trailer}" th:text="${entry.name}"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td th:each="entry : ${trailer}">
+              <input class="valueField" th:data-rowindex="${entry.groupIndex}"
+                     th:data-columnindex="${entry.fieldIndex}"
+                     type="text" th:value="${entry.value}"/></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function replaceFieldInDocument(content, lineNumber, index, newValue) {
+      let lines = content.split("\n");
+
+      if (lineNumber < 0 || lineNumber >= lines.length) {
+        console.error("Line number is out of bounds.");
+        return content;
+      }
+
+      var energyType = document.getElementById('energyType').value;
+
+      fields = splitFields(energyType, lines[lineNumber]);
+
+      if (index < 0 || index >= fields.length) {
+        console.error("Index is out of bounds.");
+        return content;
+      }
+
+      fields[index] = newValue;
+
+      lines[lineNumber] = fields.join(energyType === "gas" ? "\",\"" : "|");
+
+      if (energyType === "gas") {
+        lines[lineNumber] = "\"" + lines[lineNumber] + "\"";
+      }
+
+      return lines.join("\n");
+    }
+
+    function splitFields(energyType, line) {
+      if (energyType === 'gas') {
+        const fields = [];
+        let match;
+        const regex = /(?:^|,)(?:"([^"]*(?:""[^"]*)*)"|([^",]*))/g;
+
+        while ((match = regex.exec(line)) !== null) {
+          let field = match[1] ? match[1].replace(/""/g, '"') : match[2];
+          fields.push(field);
+        }
+        return fields
+      }
+      else {
+        return line.split("|");
+      }
+    }
+
+    function updateFlowClob(element) {
+      var rowIndex = parseInt(element.dataset.rowindex, 10);
+      var columnIndex = parseInt(element.dataset.columnindex, 10);
+
+      var pipeDelimitedFlow = document.getElementById("inputArea").value;
+
+      document.getElementById("inputArea").value =
+        replaceFieldInDocument(pipeDelimitedFlow, rowIndex, columnIndex, element.value);
+    }
+
+    var elements = document.querySelectorAll('.valueField');
+
+    elements.forEach(function (element) {
+      element.addEventListener('change', function() {
+        updateFlowClob(element);
+      });
+    });
+
+    document.getElementById("copyButton").addEventListener("click", async function () {
+      var textarea = document.getElementById("inputArea");
+      var text = textarea.value;
+
+      try {
+        await navigator.clipboard.writeText(text);
+      }
+      catch (err) {
+        console.log('Failed to copy text: ', err);
+      }
+    });
+  </script>
+</div>
+</body>
+</html>

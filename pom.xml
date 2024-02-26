@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.2.2</version>
+    <relativePath /> <!-- lookup parent from repository -->
+  </parent>
+  <groupId>com.esgglobal</groupId>
+  <artifactId>flow-mo</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>flow-mo</name>
+  <description>flow-mo</description>
+  <properties>
+    <java.version>17</java.version>
+    <v8model.generator.version>1.2.1</v8model.generator.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-thymeleaf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.14</version>
+    </dependency>
+    <dependency>
+      <groupId>uk.co.utilisoft</groupId>
+      <artifactId>v8model-generator</artifactId>
+      <version>${v8model.generator.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <!-- set generated sources -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/v8model</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- /set generated sources -->
+
+      <!-- catalogue generation -->
+      <plugin>
+        <groupId>uk.co.utilisoft</groupId>
+        <artifactId>v8model-generator</artifactId>
+        <version>${v8model.generator.version}</version>
+        <configuration>
+          <v8GroupSets>
+            <v8GroupSet>
+              <dbUrl>
+                jdbc:h2:${project.basedir}/src/main/resources/catalogue/ENT36_CASE350_3371;IFEXISTS=TRUE;ACCESS_MODE_DATA=r;
+              </dbUrl>
+              <dbUsername>utilisoft</dbUsername>
+              <dbPassword>formfill</dbPassword>
+              <outputDir>target/generated-sources/v8model</outputDir>
+              <industry>DTC</industry>
+              <excludedFlows>
+                CE002,C0250,C2850,C2600,C2860,C0500,CE001,C0002,CE501,C0200,C0400,C0001,C1000,C0300
+              </excludedFlows>
+            </v8GroupSet>
+            <v8GroupSet>
+              <dbUrl>
+                jdbc:h2:${project.basedir}/src/main/resources/catalogue/ENT_GAS_8_15;IFEXISTS=TRUE;ACCESS_MODE_DATA=r;
+              </dbUrl>
+              <dbUsername>utilisoft</dbUsername>
+              <dbPassword>formfill</dbPassword>
+              <outputDir>target/generated-sources/v8model</outputDir>
+              <industry>GAS</industry>
+              <flows>
+                102,105,105,106,111,114,198,210,AES,AMR,AREGI,AQI,AQR,CDR,CFR,CNC,CNF,CNR,CREGI,DCF,DES,FREGI,MAM,MAS,MBR,MDR,MID,MIN,MIO,MPE,MRI,NMR,NOM,NOSI,NRF,NRL,NRO,ONAGE,ONJOB,ONUPD,ORJOB,PAC,PO1,PO2,PO3,PO5,PO6,PO7,RD1,RD4,RESPN,RS1,RS2,RS3,SC9,SCR,SFN,SPC,SFR,SWN,TRF,UBR,UDR,UMR,URN,URN,URS,UT001,UT002,UT003,UT004,UT005,UT006,UT008,WAO,WOR
+              </flows>
+            </v8GroupSet>
+          </v8GroupSets>
+        </configuration>
+        <executions>
+          <execution>
+            <id>generate-v8-model</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- /catalogue generation -->
+    </plugins>
+  </build>
+
+</project>
