@@ -199,7 +199,6 @@
       <textarea id="inputArea" name="pipeInput" rows="5" cols="50" th:text="${pipeInput}"></textarea>
       <br>
       <button type="submit">Process</button>
-      <button id="copyButton" type="button">Copy All</button>
     </form>
   </div>
 
@@ -213,7 +212,7 @@
       </div>
       <span class="flowCounter" th:text="${flowCounter} + ': ' + ${name}"></span>
       <img class="icon" th:title="${energyType} + ' flow'"
-           th:src="${energyType == 'gas'} ? '/icons/gas.png' : '/icons/electricity.png'"
+           th:src="${energyType == 'gas'} ? './icons/gas.png' : './icons/electricity.png'"
            th:alt="${energyType == 'gas'} ? 'Gas Icon' : 'Electricity Icon'"/>
       <div class="flowVersion" th:text="'Flow Version: ' + ${flowVersion}"></div>
       <div class="info-section">
@@ -371,17 +370,6 @@
       });
     });
 
-    document.getElementById("copyButton").addEventListener("click", async function () {
-      var textarea = document.getElementById("inputArea");
-      var text = textarea.value;
-
-      try {
-        await navigator.clipboard.writeText(text);
-      }
-      catch (err) {
-        console.log('Failed to copy text: ', err);
-      }
-    });
   </script>
 </div>
 </body>

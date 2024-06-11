@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: v8-rest
+spec:
+  replicas: {{ .Values.v8app.replicaCount }}
+  selector:
+    matchLabels:
+      app: v8app
+  template:
+    metadata:
+      labels:
+        app: v8app
+    spec:
+      containers:
+        - name: v8-rest
+          image: "{{ .Values.v8app.image.repository }}:{{ .Values.v8app.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.v8app.service.port }}

@@ -13,7 +13,7 @@ public class MainConfig {
   String v8RestUrl;
 
   @Bean
-  public V8ModelV8JsonService v8ModelService() {
-    return new V8ModelV8JsonService(v8RestUrl);
+  public FlowAnalyserV8ModelV8JsonService v8ModelService() {
+    return new FlowAnalyserV8ModelV8JsonService(v8RestUrl);
   }
 }

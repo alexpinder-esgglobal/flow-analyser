@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flow-analyser
+spec:
+  replicas: {{ .Values.flowAnalyser.replicaCount }}
+  selector:
+    matchLabels:
+      app: flow-analyser
+  template:
+    metadata:
+      labels:
+        app: flow-analyser
+    spec:
+      containers:
+        - name: flow-analyser
+          image: "{{ .Values.flowAnalyser.image.repository }}:{{ .Values.flowAnalyser.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.flowAnalyser.service.port }}
+          env:
+            - name: APP_V8REST_URL
+              value: {{ .Values.appProperties.APP_V8REST_URL | quote }}
+            - name: SERVER_PORT
+              value: {{ .Values.appProperties.SERVER_PORT | quote }}

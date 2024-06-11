@@ -38,9 +38,9 @@ import uk.co.utilisoft.v8model.json.V8ModelV8JsonService;
 @Controller
 public class FlowController {
 
-  private final V8ModelV8JsonService v8ModelService;
+  private final FlowAnalyserV8ModelV8JsonService v8ModelService;
 
-  public FlowController(V8ModelV8JsonService v8ModelService) {
+  public FlowController(FlowAnalyserV8ModelV8JsonService v8ModelService) {
     this.v8ModelService = v8ModelService;
   }
 
