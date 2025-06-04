@@ -142,6 +142,18 @@ public class FlowController {
     map.put("value", value);
     map.put("groupIndex", groupIndex);
     map.put("fieldIndex", fieldIndex);
+    
+    // Determine field type based on field name
+    if (name.toLowerCase().contains("date")) {
+      map.put("fieldType", "date");
+    } else if (name.toLowerCase().contains("time") && !name.toLowerCase().contains("timestamp")) {
+      map.put("fieldType", "time");
+    } else if (name.toLowerCase().contains("timestamp")) {
+      map.put("fieldType", "datetime-local");
+    } else {
+      map.put("fieldType", "text");
+    }
+    
     return map;
   }
 
@@ -156,6 +168,19 @@ public class FlowController {
       map.put("groupIndex", groupIndex);
       map.put("fieldIndex", fieldIndex);
       map.put("description", fieldMetadata.description());
+      
+      // Determine field type for appropriate input rendering
+      Object rawValue = getRawDataItemValue(field, group);
+      if (rawValue instanceof LocalDate) {
+        map.put("fieldType", "date");
+      } else if (rawValue instanceof LocalTime) {
+        map.put("fieldType", "time");
+      } else if (rawValue instanceof LocalDateTime) {
+        map.put("fieldType", "datetime-local");
+      } else {
+        map.put("fieldType", "text");
+      }
+      
       if (fieldMetadata.validSetValues().length > 0) {
         map.put("validValues", Arrays.stream(fieldMetadata.validSetValues()).collect(Collectors.toMap(
           ValidSetValueMetaData::validSetValue, ValidSetValueMetaData::validSetValueDescription, (v1, v2) -> v1)));
@@ -201,6 +226,15 @@ public class FlowController {
       flowErrors.addAll(errors.getItemErrors().stream().map(Error::getMsg).toList());
     }
     return flowErrors;
+  }
+
+  public Object getRawDataItemValue(GenericItemField aItemField, GenericGroup group) {
+    if (aItemField == null) {
+      return null;
+    }
+
+    Method method = getGetterMethod(aItemField.getGetterMethodName(), group);
+    return callGetterMethod(method, group);
   }
 
   public Object getDataItemValue(GenericItemField aItemField, GenericGroup group) {
