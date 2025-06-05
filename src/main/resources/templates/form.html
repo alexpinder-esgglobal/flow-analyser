@@ -239,7 +239,16 @@
           <td th:each="entry : ${header}">
             <input class="valueField" th:data-rowindex="${entry.groupIndex}"
                    th:data-columnindex="${entry.fieldIndex}"
-                   type="text" th:value="${entry.value}"/></td>
+                   th:type="${T(java.util.Arrays).asList('Creation Date', 'Originator Date', 'Recipient Date').contains(entry.name) ? 'date' :
+                           T(java.util.Arrays).asList('Creation Time', 'Originator Time', 'Recipient Time').contains(entry.name) ? 'time' :
+                           T(java.util.Arrays).asList('Creation Timestamp', 'Completion Timestamp').contains(entry.name) ? 'datetime-local' : 'text'}"
+                   th:value="${T(java.util.Arrays).asList('Creation Date', 'Originator Date', 'Recipient Date').contains(entry.name) ? 
+                             (entry.value != null and !entry.value.isEmpty() ? entry.value.substring(0,4) + '-' + entry.value.substring(4,6) + '-' + entry.value.substring(6,8) : '') :
+                             T(java.util.Arrays).asList('Creation Time', 'Originator Time', 'Recipient Time').contains(entry.name) ?
+                             (entry.value != null and !entry.value.isEmpty() ? entry.value.substring(0,2) + ':' + entry.value.substring(2,4) + ':' + entry.value.substring(4,6) : '') :
+                             T(java.util.Arrays).asList('Creation Timestamp', 'Completion Timestamp').contains(entry.name) ?
+                             (entry.value != null and !entry.value.isEmpty() ? entry.value.substring(0,4) + '-' + entry.value.substring(4,6) + '-' + entry.value.substring(6,8) + 'T' + entry.value.substring(8,10) + ':' + entry.value.substring(10,12) + ':' + entry.value.substring(12,14) : '') :
+                             entry.value}"/></td>
         </tr>
         </tbody>
       </table>
@@ -263,7 +272,16 @@
               <input th:if="${!entry.containsKey('validValues')}" class="valueField"
                      th:data-rowindex="${entry.groupIndex}"
                      th:data-columnindex="${entry.fieldIndex}"
-                     type="text" th:value="${entry.value}"/>
+                     th:type="${entry.name.toLowerCase().contains('date') and !entry.name.toLowerCase().contains('time') ? 'date' :
+                             entry.name.toLowerCase().contains('time') and !entry.name.toLowerCase().contains('date') ? 'time' :
+                             (entry.name.toLowerCase().contains('timestamp') or entry.name.toLowerCase().contains('datetime')) ? 'datetime-local' : 'text'}"
+                     th:value="${entry.name.toLowerCase().contains('date') and !entry.name.toLowerCase().contains('time') ? 
+                               (entry.value != null and !entry.value.isEmpty() and entry.value.length() >= 8 ? entry.value.substring(0,4) + '-' + entry.value.substring(4,6) + '-' + entry.value.substring(6,8) : entry.value) :
+                               entry.name.toLowerCase().contains('time') and !entry.name.toLowerCase().contains('date') ?
+                               (entry.value != null and !entry.value.isEmpty() and entry.value.length() >= 6 ? entry.value.substring(0,2) + ':' + entry.value.substring(2,4) + ':' + entry.value.substring(4,6) : entry.value) :
+                               (entry.name.toLowerCase().contains('timestamp') or entry.name.toLowerCase().contains('datetime')) ?
+                               (entry.value != null and !entry.value.isEmpty() and entry.value.length() >= 14 ? entry.value.substring(0,4) + '-' + entry.value.substring(4,6) + '-' + entry.value.substring(6,8) + 'T' + entry.value.substring(8,10) + ':' + entry.value.substring(10,12) + ':' + entry.value.substring(12,14) : entry.value) :
+                               entry.value}"/>
               <select th:if="${entry.containsKey('validValues')}" class="valueField"
                       th:data-rowindex="${entry.groupIndex}"
                       th:data-columnindex="${entry.fieldIndex}">
@@ -298,7 +316,16 @@
             <td th:each="entry : ${trailer}">
               <input class="valueField" th:data-rowindex="${entry.groupIndex}"
                      th:data-columnindex="${entry.fieldIndex}"
-                     type="text" th:value="${entry.value}"/></td>
+                     th:type="${T(java.util.Arrays).asList('Creation Date', 'Completion Date').contains(entry.name) ? 'date' :
+                             T(java.util.Arrays).asList('Creation Time', 'Completion Time').contains(entry.name) ? 'time' :
+                             T(java.util.Arrays).asList('Creation Timestamp', 'Completion Timestamp').contains(entry.name) ? 'datetime-local' : 'text'}"
+                     th:value="${T(java.util.Arrays).asList('Creation Date', 'Completion Date').contains(entry.name) ? 
+                               (entry.value != null and !entry.value.isEmpty() ? entry.value.substring(0,4) + '-' + entry.value.substring(4,6) + '-' + entry.value.substring(6,8) : '') :
+                               T(java.util.Arrays).asList('Creation Time', 'Completion Time').contains(entry.name) ?
+                               (entry.value != null and !entry.value.isEmpty() ? entry.value.substring(0,2) + ':' + entry.value.substring(2,4) + ':' + entry.value.substring(4,6) : '') :
+                               T(java.util.Arrays).asList('Creation Timestamp', 'Completion Timestamp').contains(entry.name) ?
+                               (entry.value != null and !entry.value.isEmpty() ? entry.value.substring(0,4) + '-' + entry.value.substring(4,6) + '-' + entry.value.substring(6,8) + 'T' + entry.value.substring(8,10) + ':' + entry.value.substring(10,12) + ':' + entry.value.substring(12,14) : '') :
+                               entry.value}"/></td>
           </tr>
           </tbody>
         </table>
@@ -357,9 +384,23 @@
       var columnIndex = parseInt(element.dataset.columnindex, 10);
 
       var pipeDelimitedFlow = document.getElementById("inputArea").value;
+      
+      var value = element.value;
+      
+      // Convert HTML5 date/time inputs back to expected format
+      if (element.type === 'date' && value) {
+        // Convert YYYY-MM-DD to YYYYMMDD
+        value = value.replace(/-/g, '');
+      } else if (element.type === 'time' && value) {
+        // Convert HH:MM:SS to HHMMSS
+        value = value.replace(/:/g, '');
+      } else if (element.type === 'datetime-local' && value) {
+        // Convert YYYY-MM-DDTHH:MM:SS to YYYYMMDDHHMMSS
+        value = value.replace(/[-:T]/g, '');
+      }
 
       document.getElementById("inputArea").value =
-        replaceFieldInDocument(pipeDelimitedFlow, rowIndex, columnIndex, element.value);
+        replaceFieldInDocument(pipeDelimitedFlow, rowIndex, columnIndex, value);
     }
 
     var elements = document.querySelectorAll('.valueField');
